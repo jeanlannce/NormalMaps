@@ -411,6 +411,13 @@ namespace DynamicMaps.UI
                 return;
             }
 
+            // 藏身处（HideoutGame）也会触发 BattleUIScreen.Show——不挂 peek/小地图组件
+            if (GameUtils.IsInHideout())
+            {
+                Plugin.Log.LogInfo("Skipping peek component: in hideout");
+                return;
+            }
+
             Plugin.Log.LogInfo("Trying to attach peek component to BattleUI");
 
             _peekComponent = MapPeekComponent.Create(battleUI.gameObject);
@@ -1050,8 +1057,10 @@ namespace DynamicMaps.UI
                 foreach (var layerDef in mapDef.Layers.Values)
                 {
                     // just load sprite to cache it, one a frame
+                    // （用 SvgUtils 而非 TextureUtils——图层是 SVG，v1.2.1 原版即如此；
+                    //   之前误用 TextureUtils 会把 SVG 当 PNG 加载，缓存 2x2 空白 sprite）
                     Plugin.Log.LogInfo($"Precaching sprite: {layerDef.ImagePath}");
-                    TextureUtils.GetOrLoadCachedSprite(layerDef.ImagePath);
+                    SvgUtils.GetOrLoadCachedSprite(layerDef);
                     yield return null;
                 }
             }

@@ -20,14 +20,31 @@ namespace DynamicMaps.Utils
 
         private static readonly Regex ViewBoxRegex = new Regex("<svg[^>]*\\sviewBox=\"([^\"]+)\"", RegexOptions.Compiled);
 
-        private static readonly object[] TesselationIndex;
-        private static readonly System.Reflection.MethodInfo _importSvgMethod;
-        private static readonly System.Reflection.MethodInfo _tessellateSceneMethod;
-        private static readonly System.Reflection.MethodInfo _buildSpriteMethod;
-        private static readonly System.Reflection.FieldInfo _geometryVerticesField;
+        // 惰性初始化（Unity.VectorGraphics 反射链路）；初始化失败时降级为“图层空白”，避免反复抛异常
+        private static bool _initialized;
+        private static bool _initFailed;
+        private static bool _warnedInitFailed;
+
+        private static object[] TesselationIndex;
+        private static System.Reflection.MethodInfo _importSvgMethod;
+        private static System.Reflection.MethodInfo _tessellateSceneMethod;
+        private static System.Reflection.MethodInfo _buildSpriteMethod;
+        private static System.Reflection.FieldInfo _geometryVerticesField;
 
         public static Sprite GetOrLoadCachedSprite(MapLayerDef def)
         {
+            EnsureInitialized();
+            if (_initFailed)
+            {
+                if (!_warnedInitFailed)
+                {
+                    _warnedInitFailed = true;
+                    Plugin.Log.LogWarning("[SvgUtils] SVG rendering unavailable, map layers will be blank (markers still show)");
+                }
+
+                return null;
+            }
+
             var key = (def.ImagePath, def.TesselationIndex);
             if (MapCache.TryGetValue(key, out var value))
             {
@@ -41,6 +58,63 @@ namespace DynamicMaps.Utils
         public static void ClearCache()
         {
             MapCache.Clear();
+        }
+
+        /// <summary>
+        /// 惰性执行反射初始化。Unity.VectorGraphics.dll 缺失/不兼容时给出明确指引，
+        /// 而不是让 TypeInitializationException 污染所有图层加载路径。
+        /// </summary>
+        private static void EnsureInitialized()
+        {
+            if (_initialized || _initFailed)
+            {
+                return;
+            }
+
+            try
+            {
+                // 不能用 Type.GetType("...")——Unity.VectorGraphics 程序集可能尚未被运行时加载，GetType 会返回 null
+                // 用编译期 typeof 引用程序集后从 Assembly 查类型，保证稳定解析
+                var utilsType = typeof(Unity.VectorGraphics.VectorUtils);
+                var tessType = utilsType.Assembly.GetType("Unity.VectorGraphics.VectorUtils+TessellationOptions");
+
+                TesselationIndex = new object[5];
+                TesselationIndex[0] = MakeTessellationOptions(tessType, 1.5f, 0.2f, 0.2f, 0.04f);
+                TesselationIndex[1] = MakeTessellationOptions(tessType, 2f, 0.3f, 0.25f, 0.05f);
+                TesselationIndex[2] = MakeTessellationOptions(tessType, 4f, 0.4f, 0.3f, 0.06f);
+                TesselationIndex[3] = MakeTessellationOptions(tessType, 6f, 0.5f, 0.4f, 0.07f);
+                TesselationIndex[4] = MakeTessellationOptions(tessType, 8f, 0.6f, 0.5f, 0.08f);
+
+                _importSvgMethod = typeof(Unity.VectorGraphics.SVGParser).GetMethods()
+                    .First(m => m.Name == "ImportSVG" && m.GetParameters().Length == 6
+                        && m.GetParameters()[1].ParameterType.Name == "ViewportOptions");
+                _tessellateSceneMethod = utilsType.GetMethods()
+                    .First(m => m.Name == "TessellateScene" && m.GetParameters().Length == 3);
+                _buildSpriteMethod = utilsType.GetMethods()
+                    .First(m => m.Name == "BuildSprite" && m.GetParameters().Length == 7);
+                _geometryVerticesField = utilsType.Assembly.GetType("Unity.VectorGraphics.VectorUtils+Geometry")
+                    .GetField("Vertices");
+
+                _initialized = true;
+            }
+            catch (Exception e)
+            {
+                _initFailed = true;
+                Plugin.Log.LogError("[SvgUtils] Unity.VectorGraphics 初始化失败！SVG 地图图层将无法渲染（标记图标仍可显示）。");
+                Plugin.Log.LogError("[SvgUtils] 请确认游戏 EscapeFromTarkov_Data/Managed/ 目录包含：Unity.VectorGraphics.dll、Unity.Mathematics.dll、Unity.Collections.dll、Unity.Collections.LowLevel.ILSupport.dll");
+                LogExceptionChain(e);
+            }
+        }
+
+        private static void LogExceptionChain(Exception e)
+        {
+            var indent = "";
+            while (e != null)
+            {
+                Plugin.Log.LogError($"[SvgUtils] {indent}{e.GetType().Name}: {e.Message}");
+                e = e.InnerException;
+                indent += "  -> ";
+            }
         }
 
         private static Sprite LoadSvgFromPath(MapLayerDef def, string absolutePath)
@@ -95,7 +169,8 @@ namespace DynamicMaps.Utils
             }
             catch (Exception e)
             {
-                Plugin.Log.LogWarning($"[SvgUtils] Failed to render {absolutePath}: {e.Message}");
+                Plugin.Log.LogWarning($"[SvgUtils] Failed to render {absolutePath}: {e.GetType().Name}: {e.Message}");
+                LogExceptionChain(e.InnerException);
                 return null;
             }
         }
@@ -155,31 +230,6 @@ namespace DynamicMaps.Utils
             t.GetProperty("MaxTanAngleDeviation").SetValue(o, tan);
             t.GetProperty("SamplingStepSize").SetValue(o, sampling);
             return o;
-        }
-
-        static SvgUtils()
-        {
-            // 注意：不能用 Type.GetType("...")——Unity.VectorGraphics 程序集可能尚未被运行时加载，GetType 会返回 null
-            // 用编译期 typeof 引用程序集后从 Assembly 查类型，保证稳定解析
-            var utilsType = typeof(Unity.VectorGraphics.VectorUtils);
-            var tessType = utilsType.Assembly.GetType("Unity.VectorGraphics.VectorUtils+TessellationOptions");
-
-            TesselationIndex = new object[5];
-            TesselationIndex[0] = MakeTessellationOptions(tessType, 1.5f, 0.2f, 0.2f, 0.04f);
-            TesselationIndex[1] = MakeTessellationOptions(tessType, 2f, 0.3f, 0.25f, 0.05f);
-            TesselationIndex[2] = MakeTessellationOptions(tessType, 4f, 0.4f, 0.3f, 0.06f);
-            TesselationIndex[3] = MakeTessellationOptions(tessType, 6f, 0.5f, 0.4f, 0.07f);
-            TesselationIndex[4] = MakeTessellationOptions(tessType, 8f, 0.6f, 0.5f, 0.08f);
-
-            _importSvgMethod = typeof(Unity.VectorGraphics.SVGParser).GetMethods()
-                .First(m => m.Name == "ImportSVG" && m.GetParameters().Length == 6
-                    && m.GetParameters()[1].ParameterType.Name == "ViewportOptions");
-            _tessellateSceneMethod = utilsType.GetMethods()
-                .First(m => m.Name == "TessellateScene" && m.GetParameters().Length == 3);
-            _buildSpriteMethod = utilsType.GetMethods()
-                .First(m => m.Name == "BuildSprite" && m.GetParameters().Length == 7);
-            _geometryVerticesField = utilsType.Assembly.GetType("Unity.VectorGraphics.VectorUtils+Geometry")
-                .GetField("Vertices");
         }
     }
 }

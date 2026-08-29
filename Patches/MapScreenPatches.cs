@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using SPT.Reflection.Patching;
 using DynamicMaps.Config;
+using DynamicMaps.Utils;
 using EFT.UI.Map;
 using HarmonyLib;
 
@@ -19,9 +20,9 @@ namespace DynamicMaps.Patches
         {
             try
             {
-                if (!Settings.ReplaceMapScreen.Value)
+                if (!Settings.ReplaceMapScreen.Value || GameUtils.IsInHideout())
                 {
-                    // mod is disabled
+                    // mod is disabled, or we're in the hideout (hideout triggers MapScreen.Show on its own)
                     Plugin.Instance.Map?.OnMapScreenClose();
                     return true;
                 }
@@ -53,9 +54,9 @@ namespace DynamicMaps.Patches
         {
             try
             {
-                if (!Settings.ReplaceMapScreen.Value)
+                if (!Settings.ReplaceMapScreen.Value || GameUtils.IsInHideout())
                 {
-                    // mod is disabled
+                    // mod is disabled, or hideout (hideout closes MapScreen on its own)
                     return true;
                 }
 

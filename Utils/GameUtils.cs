@@ -53,6 +53,15 @@ namespace DynamicMaps.Utils
                                       && botGame.Status != GameStatus.SoftStopping);
         }
 
+        /// <summary>
+        /// 是否在藏身处（Hideout）。藏身处是 HideoutGame（独立于战局），但会触发 BattleUIScreen/MapScreen
+        /// 流程——地图替换/小地图不应在藏身处生效。
+        /// </summary>
+        public static bool IsInHideout()
+        {
+            return Singleton<AbstractGame>.Instance is HideoutGame;
+        }
+
         public static string GetCurrentMapInternalName()
         {
             var gameWorld = Singleton<GameWorld>.Instance;
