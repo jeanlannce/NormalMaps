@@ -30,7 +30,6 @@ namespace DynamicMaps.Utils
 
         private static FieldInfo _conditionCounterTemplateField = AccessTools.Field(typeof(ConditionCounterCreator), "_templateConditions");
         private static FieldInfo _templateConditionsConditionsField = AccessTools.Field(_conditionCounterTemplateField.FieldType, "Conditions");
-        private static FieldInfo _conditionListField = AccessTools.Field(_templateConditionsConditionsField.FieldType, "list_0");
         //
 
         // TODO: move to config
@@ -54,11 +53,19 @@ namespace DynamicMaps.Utils
 
             if (QuestItems == null)
             {
-                QuestItems = Traverse.Create(gameWorld)
+                // 4.1.3：GameWorld.LootItems 是 DictionaryListHydra<int, LootItem>，内部列表字段是 _iteration（无 list_0）
+                var lootItems = Traverse.Create(gameWorld)
                     .Field("LootItems")
-                    .Field("list_0")
-                    .GetValue<List<LootItem>>()
-                    .Where(i => i.Item.QuestItem).ToList();
+                    .Field("_iteration")
+                    .GetValue<List<LootItem>>();
+
+                if (lootItems == null)
+                {
+                    Plugin.Log.LogWarning("QuestUtils: GameWorld.LootItems._iteration is null, quest items unavailable");
+                    return;
+                }
+
+                QuestItems = lootItems.Where(i => i.Item.QuestItem).ToList();
             }
         }
 
@@ -215,10 +222,19 @@ namespace DynamicMaps.Utils
                                                                             string questName, string conditionDescription)
         {
             var counter = _conditionCounterTemplateField.GetValue(conditionCreator);
-            var conditions = _templateConditionsConditionsField.GetValue(counter);
-            var conditionsList = _conditionListField.GetValue(conditions) as IList<Condition>;
+            if (counter == null)
+            {
+                yield break;
+            }
 
-            foreach (var condition in conditionsList)
+            // 4.1.3：ConditionCollection : UpdatableBindableList<Condition> : BindableList<Condition>，直接按 IEnumerable<Condition> 迭代（无 list_0 字段）
+            var conditions = _templateConditionsConditionsField.GetValue(counter) as IEnumerable<Condition>;
+            if (conditions == null)
+            {
+                yield break;
+            }
+
+            foreach (var condition in conditions)
             {
                 foreach (var position in GetPositionsForCondition(condition, questName, conditionDescription))
                 {
