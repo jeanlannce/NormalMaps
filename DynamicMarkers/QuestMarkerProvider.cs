@@ -56,6 +56,10 @@ namespace DynamicMaps
                 QuestUtils.TryCaptureQuestData();
 
                 var player = GameUtils.GetMainPlayer();
+                if (player == null)
+                {
+                    return;
+                }
 
                 var markerDefs = QuestUtils.GetMarkerDefsForPlayer(player);
                 if (markerDefs == null)

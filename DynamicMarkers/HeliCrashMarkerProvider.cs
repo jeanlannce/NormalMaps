@@ -51,8 +51,9 @@ namespace DynamicMaps.DynamicMarkers
 
         private void TryAddMarker()
         {
-            var (item, worldData) = Singleton<GameWorld>.Instance.FindItemWithWorldData(HeliItemId).Value;
-            if (item == null)
+            // 防御：4.1.3 返回 Option<(Item, ItemOwnerWorldData)>，查询失败（Failed）或物品/Transform 缺失时跳过，避免异常导致标记静默失败
+            var found = Singleton<GameWorld>.Instance.FindItemWithWorldData(HeliItemId);
+            if (found.Failed || found.Value.item == null || found.Value.data.Transform == null)
             {
                 return;
             }
@@ -62,7 +63,7 @@ namespace DynamicMaps.DynamicMarkers
                 Category = MarkerCategory,
                 Color = MarkerColor,
                 ImagePath = MarkerImagePath,
-                Position = MathUtils.ConvertToMapPosition(worldData.Transform),
+                Position = MathUtils.ConvertToMapPosition(found.Value.data.Transform),
                 Pivot = MarkerPivot,
                 Text = MarkerName,
             };
