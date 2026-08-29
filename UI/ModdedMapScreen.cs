@@ -159,8 +159,9 @@ namespace DynamicMaps.UI
             GameWorldOnDestroyPatch.OnRaidEnd += OnRaidEnd;
 
             // load initial maps from path
+            // 注意：不做启动预缓存——SvgUtils 渲染大 SVG 是同步阻塞（单个 0.5~3 秒），
+            // 启动/进战局时逐帧渲染 36 张会卡死在“正在加载地图”。改为按需渲染 + 缓存（切图秒开）。
             _mapSelectDropdown.LoadMapDefsFromPath(_mapRelPath);
-            PrecacheMapLayerImages();
         }
 
         private void OnDestroy()
@@ -1040,28 +1041,6 @@ namespace DynamicMaps.UI
                     Plugin.Log.LogError($"Dynamic marker provider {dynamicProvider} threw exception in ChangeMap");
                     Plugin.Log.LogError($"  Exception given was: {e.Message}");
                     Plugin.Log.LogError($"  {e.StackTrace}");
-                }
-            }
-        }
-
-        private void PrecacheMapLayerImages()
-        {
-            Singleton<CommonUI>.Instance.StartCoroutine(
-                PrecacheCoroutine(_mapSelectDropdown.GetMapDefs()));
-        }
-
-        private static IEnumerator PrecacheCoroutine(IEnumerable<MapDef> mapDefs)
-        {
-            foreach (var mapDef in mapDefs)
-            {
-                foreach (var layerDef in mapDef.Layers.Values)
-                {
-                    // just load sprite to cache it, one a frame
-                    // （用 SvgUtils 而非 TextureUtils——图层是 SVG，v1.2.1 原版即如此；
-                    //   之前误用 TextureUtils 会把 SVG 当 PNG 加载，缓存 2x2 空白 sprite）
-                    Plugin.Log.LogInfo($"Precaching sprite: {layerDef.ImagePath}");
-                    SvgUtils.GetOrLoadCachedSprite(layerDef);
-                    yield return null;
                 }
             }
         }
