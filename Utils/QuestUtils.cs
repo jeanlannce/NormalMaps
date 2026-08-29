@@ -103,7 +103,7 @@ namespace DynamicMaps.Utils
             return markers;
         }
 
-        internal static IEnumerable<MapMarkerDef> GetMarkerDefsForQuest(Player player, QuestDataClass quest)
+        internal static IEnumerable<MapMarkerDef> GetMarkerDefsForQuest(Player player, Quest quest)
         {
             var markers = new List<MapMarkerDef>();
 
@@ -266,7 +266,7 @@ namespace DynamicMaps.Utils
             }
         }
 
-        private static IEnumerable<Condition> GetIncompleteQuestConditions(Player player, QuestDataClass quest)
+        private static IEnumerable<Condition> GetIncompleteQuestConditions(Player player, Quest quest)
         {
             // TODO: Template.Conditions is a GClass reference
             if (quest?.Template?.Conditions == null)
@@ -300,7 +300,7 @@ namespace DynamicMaps.Utils
             }
         }
 
-        private static IEnumerable<QuestDataClass> GetIncompleteQuests(Player player)
+        private static IEnumerable<Quest> GetIncompleteQuests(Player player)
         {
             var questController = _playerQuestControllerField.GetValue(player);
             if (questController == null)
@@ -316,9 +316,9 @@ namespace DynamicMaps.Utils
                 yield break;
             }
 
-            // 4.1.3：BindableList<Quest>.List 是 List<Quest>（Quest : QuestDataClass），用协变 IEnumerable 接收
+            // 4.1.3：BindableList<Quest>.List 是 List<Quest>（Quest : Conditional<Quest>，不再是 QuestDataClass）
             var questsRaw = _questsListField.GetValue(quests);
-            var questsList = questsRaw as IEnumerable<QuestDataClass>;
+            var questsList = questsRaw as IEnumerable<Quest>;
             if (questsList == null)
             {
                 Plugin.Log.LogError($"Not able to get quests for player: {player.Id}, questsList is null");
@@ -332,7 +332,7 @@ namespace DynamicMaps.Utils
                     continue;
                 }
 
-                if (quest.Status != EQuestStatus.Started)
+                if (quest.QuestStatus != EQuestStatus.Started)
                 {
                     continue;
                 }
@@ -341,7 +341,7 @@ namespace DynamicMaps.Utils
             }
         }
 
-        private static bool IsConditionCompleted(Player player, QuestDataClass questData, Condition condition)
+        private static bool IsConditionCompleted(Player player, Quest questData, Condition condition)
         {
             // CompletedConditions is inaccurate (it doesn't reset when some quests do on death)
             // and also does not contain optional objectives, need to recheck if something is in there
