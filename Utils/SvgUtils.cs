@@ -52,7 +52,14 @@ namespace DynamicMaps.Utils
             }
 
             var absolutePath = Path.Combine(Plugin.Path, def.ImagePath);
-            return MapCache[key] = LoadSvgFromPath(def, absolutePath);
+            var sprite = LoadSvgFromPath(def, absolutePath);
+            if (sprite != null)
+            {
+                // 只有成功才缓存；失败不缓存（避免一次性渲染失败导致该图层永久空白）
+                MapCache[key] = sprite;
+            }
+
+            return sprite;
         }
 
         public static void ClearCache()
@@ -138,10 +145,12 @@ namespace DynamicMaps.Utils
                 var sceneInfo = _importSvgMethod.Invoke(null, new object[] { stringReader, viewportOptions, 0f, 1f, 0, 0 });
                 var scene = sceneInfo.GetType().GetProperty("Scene").GetValue(sceneInfo);
 
-                // 4.1.3 签名：TessellateScene(Scene, TessellationOptions, Dictionary<SceneNode,float> nodeOpacities)——传 null 即可
+                // 4.1.3 签名：TessellateScene(Scene, TessellationOptions, Dictionary<SceneNode,float> nodeOpacities)
+                // v1.2.1 传 SceneInfo.NodeOpacity（节点透明度）；此处读取真实值对齐，缺失时退回 null（等效全不透明）
+                var nodeOpacity = sceneInfo.GetType().GetProperty("NodeOpacity")?.GetValue(sceneInfo);
                 for (int i = Mathf.Clamp(def.TesselationIndex, 0, TesselationIndex.Length - 1); i < TesselationIndex.Length; i++)
                 {
-                    var list = (IList)_tessellateSceneMethod.Invoke(null, new object[] { scene, TesselationIndex[i], null });
+                    var list = (IList)_tessellateSceneMethod.Invoke(null, new object[] { scene, TesselationIndex[i], nodeOpacity });
                     if (list == null || list.Count == 0)
                     {
                         Plugin.Log.LogWarning($"[SvgUtils] Preset {i} produced empty geometry for {absolutePath}, trying next.");

@@ -69,10 +69,18 @@ namespace DynamicMaps.UI.Components
             }
 
             // v1.2.1 用 SVGImage 组件渲染矢量图层
-            layer.Image = go.AddComponent<Unity.VectorGraphics.SVGImage>();
-            layer.Image.raycastTarget = false;
-            layer.Image.preserveAspect = false;
-            layer.Image.sprite = sprite;
+            try
+            {
+                layer.Image = go.AddComponent<Unity.VectorGraphics.SVGImage>();
+                layer.Image.raycastTarget = false;
+                layer.Image.preserveAspect = false;
+                layer.Image.sprite = sprite;
+            }
+            catch (Exception e)
+            {
+                Plugin.Log.LogError($"[MapLayer] Failed to add SVGImage component for layer {name}: {e.Message}");
+                return null;
+            }
 
             return layer;
         }
