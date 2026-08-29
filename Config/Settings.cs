@@ -76,6 +76,7 @@ namespace DynamicMaps.Config
         public static ConfigEntry<Color> SecretPointColor;
         public static ConfigEntry<Color> HiddenStashColor;
         public static ConfigEntry<Color> TransPointColor;
+        public static ConfigEntry<Color> AirdropColor;
 
         public static ConfigEntry<bool> ShowFriendlyCorpsesInRaid;
         public static ConfigEntry<bool> ShowKilledCorpsesInRaid;
@@ -449,6 +450,15 @@ namespace DynamicMaps.Config
                 new Color(1f, 0.62f, 0.2f),
                 new ConfigDescription(
                     "转运点标记的颜色",
+                    null,
+                    new ConfigurationManagerAttributes { })));
+
+            ConfigEntries.Add(AirdropColor = Config.Bind(
+                MarkerColorTitle,
+                "空投标记颜色",
+                new Color(1f, 0.3f, 0.01f),
+                new ConfigDescription(
+                    "空投标记的颜色",
                     null,
                     new ConfigurationManagerAttributes { })));
 

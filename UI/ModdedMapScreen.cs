@@ -907,6 +907,7 @@ namespace DynamicMaps.UI
             AddRemoveMarkerProvider<LockedDoorMarkerMutator>(Settings.ShowLockedDoorStatus.Value);
             AddRemoveMarkerProvider<BackpackMarkerProvider>(Settings.ShowDroppedBackpackInRaid.Value);
             AddRemoveMarkerProvider<BTRMarkerProvider>(Settings.ShowBTRInRaid.Value);
+            AddRemoveMarkerProvider<AirdropMarkerProvider>(Settings.ShowAirdropsInRaid.Value);
 
             // v1.2.1 移植标记提供器：愿望清单 / 隐藏仓库 / 转运点 / 秘密撤离点 / 直升机坠毁
             AddRemoveMarkerProvider<LootMarkerProvider>(Settings.ShowWishListItemsInRaid.Value);
@@ -914,6 +915,11 @@ namespace DynamicMaps.UI
             AddRemoveMarkerProvider<TransitMarkerProvider>(Settings.ShowTransitPointsInRaid.Value);
             AddRemoveMarkerProvider<SecretMarkerProvider>(Settings.ShowSecretPointsInRaid.Value);
             AddRemoveMarkerProvider<HeliCrashMarkerProvider>(Settings.ShowHeliCrashMarker.Value);
+
+            if (Settings.ShowAirdropsInRaid.Value)
+            {
+                GetMarkerProvider<AirdropMarkerProvider>()?.RefreshMarkers();
+            }
 
             // extracts
             AddRemoveMarkerProvider<ExtractMarkerProvider>(Settings.ShowExtractsInRaid.Value);

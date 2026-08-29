@@ -7,6 +7,7 @@ using DrakiaXYZ.VersionChecker;
 using DynamicMaps.Config;
 using DynamicMaps.Patches;
 using DynamicMaps.UI;
+using DynamicMaps.Utils;
 using EFT.UI;
 using EFT.UI.Map;
 
@@ -37,6 +38,9 @@ namespace DynamicMaps
 
             Instance = this;
 
+            // 检测冲突 mod（旧版 DynamicMaps / Fika / HeliCrash）
+            ModDetection.CheckForMods();
+
             // patches
             new BattleUIScreenShowPatch().Enable();
             new CommonUIAwakePatch().Enable();
@@ -47,6 +51,7 @@ namespace DynamicMaps
             new GameWorldUnregisterPlayerPatch().Enable();
             new GameWorldRegisterLootItemPatch().Enable();
             new GameWorldDestroyLootPatch().Enable();
+            new AirdropBoxOnBoxLandPatch().Enable();
             new PlayerOnDeadPatch().Enable();
             new PlayerInventoryThrowItemPatch().Enable();
         }
