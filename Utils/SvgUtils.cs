@@ -157,9 +157,12 @@ namespace DynamicMaps.Utils
                     // 4.1.3 签名：BuildSprite(List<Geometry>, Rect, float svgPixelsPerUnit, Alignment, Vector2 customPivot, ushort gradientResolution, bool flipYAxis)
                     var alignment = Enum.ToObject(_buildSpriteMethod.GetParameters()[3].ParameterType, 0);
                     var sprite = (Sprite)_buildSpriteMethod.Invoke(null, new object[] { list, viewbox.Value, 1f, alignment, Vector2.zero, (ushort)32, true });
-                    if (sprite != null && sprite.texture != null)
+                    if (sprite != null)
                     {
-                        Plugin.Log.LogInfo($"[SvgUtils] SVG layer rendered: {Path.GetFileName(absolutePath)} ({sprite.texture.width}x{sprite.texture.height})");
+                        // 注意：纯色 SVG 的 sprite.texture 可能为 null（GenerateAtlas 对 SolidFill 返回 null，属正常）
+                        // SVGImage 用顶点颜色渲染不依赖 texture——只在真正失败（null sprite）时打警告
+                        var texInfo = sprite.texture != null ? $"{sprite.texture.width}x{sprite.texture.height}" : "vector(no atlas)";
+                        Plugin.Log.LogInfo($"[SvgUtils] SVG layer rendered: {Path.GetFileName(absolutePath)} ({texInfo})");
                     }
                     return sprite;
                 }

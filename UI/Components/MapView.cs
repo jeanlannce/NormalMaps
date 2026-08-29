@@ -224,6 +224,12 @@ namespace DynamicMaps.UI.Components
                 try
                 {
                     var layer = MapLayer.Create(MapLayerContainer, layerName, layerDef, -CoordinateRotation);
+                    if (layer == null)
+                    {
+                        // 图层渲染失败（SVG 渲染/初始化失败），跳过不中断整张地图
+                        continue;
+                    }
+
                     layer.IsOnDefaultLevel = layerDef.Level == mapDef.DefaultLevel;
 
                     _layers.Add(layer);
