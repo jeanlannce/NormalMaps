@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>NormalMaps</AssemblyName>
+    <RootNamespace>DynamicMaps</RootNamespace>
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+    <TargetFramework>net471</TargetFramework>
+    <LangVersion>10.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx"><HintPath>lib\BepInEx.dll</HintPath></Reference>
+    <Reference Include="0Harmony"><HintPath>lib\0Harmony.dll</HintPath></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>lib\Assembly-CSharp.dll</HintPath></Reference>
+    <Reference Include="Comfort"><HintPath>lib\Comfort.dll</HintPath></Reference>
+    <Reference Include="Comfort.Unity"><HintPath>lib\Comfort.Unity.dll</HintPath></Reference>
+    <Reference Include="DissonanceVoip"><HintPath>lib\DissonanceVoip.dll</HintPath></Reference>
+    <Reference Include="DOTween"><HintPath>lib\DOTween.dll</HintPath></Reference>
+    <Reference Include="DOTween.Modules"><HintPath>lib\DOTween.Modules.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>lib\Newtonsoft.Json.dll</HintPath></Reference>
+    <Reference Include="Sirenix.Serialization"><HintPath>lib\Sirenix.Serialization.dll</HintPath></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>lib\Unity.TextMeshPro.dll</HintPath></Reference>
+    <Reference Include="UnityEngine"><HintPath>lib\UnityEngine.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>lib\UnityEngine.CoreModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.UI"><HintPath>lib\UnityEngine.UI.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.UIModule"><HintPath>lib\UnityEngine.UIModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>lib\UnityEngine.IMGUIModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.ImageConversionModule"><HintPath>lib\UnityEngine.ImageConversionModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>lib\UnityEngine.InputLegacyModule.dll</HintPath></Reference>
+    <Reference Include="Unity.VectorGraphics"><HintPath>lib\Unity.VectorGraphics.dll</HintPath></Reference>
+    <Reference Include="Unity.Mathematics"><HintPath>lib\Unity.Mathematics.dll</HintPath></Reference>
+    <Reference Include="Unity.Collections"><HintPath>lib\Unity.Collections.dll</HintPath></Reference>
+    <Reference Include="Unity.Collections.LowLevel.ILSupport"><HintPath>lib\Unity.Collections.LowLevel.ILSupport.dll</HintPath></Reference>
+    <Reference Include="spt-common"><HintPath>lib\spt-common.dll</HintPath></Reference>
+    <Reference Include="spt-core"><HintPath>lib\spt-core.dll</HintPath></Reference>
+    <Reference Include="spt-custom"><HintPath>lib\spt-custom.dll</HintPath></Reference>
+    <Reference Include="spt-debugging"><HintPath>lib\spt-debugging.dll</HintPath></Reference>
+    <Reference Include="spt-reflection"><HintPath>lib\spt-reflection.dll</HintPath></Reference>
+    <Reference Include="spt-singleplayer"><HintPath>lib\spt-singleplayer.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>lib\UnityEngine.TextRenderingModule.dll</HintPath></Reference>
+  </ItemGroup>
+
+</Project>

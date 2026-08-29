@@ -1,0 +1,13 @@
+# build output
+bin/
+obj/
+
+# references to game assemblies (SPT/EFT, copyrighted - not part of source)
+lib/
+
+# release artifacts (published via GitHub Releases instead)
+NormalMaps发布包/
+
+# data backup & bundled game binaries inside 发布源
+发布源/EscapeFromTarkov_Data/
+发布源/Maps_034_bak/
